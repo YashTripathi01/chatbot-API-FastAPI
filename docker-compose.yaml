@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:latest
+    container_name: chatbot-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - chatbot
+
+  app:
+    build: .
+    container_name: chatbot-api
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+    command: sh -c "alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000"
+    volumes:
+      - ./:/app
+    networks:
+      - chatbot
+
+volumes:
+  pgdata:
+
+networks:
+  chatbot:
+    driver: bridge
